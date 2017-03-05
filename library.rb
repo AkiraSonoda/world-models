@@ -36,8 +36,72 @@ File.open("library.txt","w") do |f|
   end
 
   entries.each do |entry|
-    f.write("EXPORT " << "facades/" << entry << " " << entry << "\n");
+    if entry.include?("facades/")
+      f.write("EXPORT " << entry << " " << entry << "\n");
+    else
+      f.write("EXPORT " << "facades/" << entry << " " << entry << "\n");
+    end
   end
+  
+  
+  entries = []
+  paths.each do |path|
+    if path.include?(".for") || path.include?(".FOR") 
+      lib = path[2..-1]
+      entries << lib
+    end
+  end
+
+  entries.each do |entry|
+    f.write("EXPORT " << entry << " " << entry << "\n");
+  end
+  
+  
+  # Autogen
+  entries = []
+  paths.each do |path|
+    if path.include?(".ags") || path.include?(".AGS") 
+      lib = path[2..-1]
+      entries << lib
+    end
+  end
+
+  entries.each do |entry|
+    f.write("EXPORT " << entry << " " << entry << "\n");
+  end
+  
+  # Look for local library files
+  entries = []
+  paths.each do |path|
+    if path.include?("library.txt")
+      entries << path
+    end
+  end
+
+  entries.each do |entry|
+    unless (entry == "./library.txt")
+      lib = File.open(entry,"r")
+      l = lib.read
+      lib.close
+      
+      exports = l.split("\n")
+      exports.each do |export_entry|
+        if export_entry.start_with?("EXPORT ")
+          virtual = export_entry.split(" ")[1]
+          real = export_entry.split(" ")[2]
+          f.write("EXPORT " << virtual << " " << real << "\n")
+        end
+        if export_entry.start_with?("EXPORT_RATIO ")
+          ratio = export_entry.split(" ")[1] 
+          virtual = export_entry.split(" ")[2]
+          real = export_entry.split(" ")[3]
+          f.write("EXPORT_RATIO " << ratio << " " << virtual << " " << real << "\n")
+        end
+      end
+    end
+  end
+
+  
 
 end
 
